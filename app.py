@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 import matplotlib
 
 matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 
 app = Flask(__name__)
@@ -19,6 +18,19 @@ interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 class_names = ['glioma', 'meningioma', 'notumor', 'pituitary']
+
+# --- TRUCO DE CALENTAMIENTO (WARM-UP) ---
+# Forzamos a TensorFlow a cargar todas sus librerías en RAM al arrancar.
+try:
+    print("Iniciando calentamiento de TensorFlow...")
+    forma_entrada = input_details[0]['shape']
+    imagen_falsa = np.zeros(forma_entrada, dtype=np.float32)
+    interpreter.set_tensor(input_details[0]['index'], imagen_falsa)
+    interpreter.invoke()
+    print("Calentamiento completado. API lista para peticiones rápidas.")
+except Exception as e:
+    print(f"Error en calentamiento: {e}")
+# ----------------------------------------
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -67,7 +79,6 @@ def clasificar_api():
         'image_name': filename,
         'probs': probabilities
     })
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
