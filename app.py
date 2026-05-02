@@ -13,28 +13,38 @@ import matplotlib.pyplot as plt
 app = Flask(__name__)
 CORS(app)
 
+# 1. Crear carpetas primero para que el calentamiento pueda usarlas
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# 2. Cargar el modelo
 interpreter = tf.lite.Interpreter(model_path='brain_tumor_cnn.tflite')
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 class_names = ['glioma', 'meningioma', 'notumor', 'pituitary']
 
-# --- TRUCO DE CALENTAMIENTO (WARM-UP) ---
-# Forzamos a TensorFlow a cargar todas sus librerías en RAM al arrancar.
+# --- TRUCO DE CALENTAMIENTO TOTAL ---
+# Obligamos a TensorFlow y a Matplotlib a procesar todo en el arranque.
 try:
-    print("Iniciando calentamiento de TensorFlow...")
+    print("Iniciando calentamiento de TensorFlow y Matplotlib...")
+    # Simular una predicción
     forma_entrada = input_details[0]['shape']
     imagen_falsa = np.zeros(forma_entrada, dtype=np.float32)
     interpreter.set_tensor(input_details[0]['index'], imagen_falsa)
     interpreter.invoke()
-    print("Calentamiento completado. API lista para peticiones rápidas.")
+    
+    # Simular la creación del gráfico (esto es lo que causaba el timeout)
+    plt.figure(figsize=(6, 4))
+    plt.bar(['test'], [1.0], color='skyblue')
+    plt.title('Calentamiento')
+    plt.savefig(os.path.join(app.config['UPLOAD_FOLDER'], 'warmup.png'))
+    plt.close()
+    print("Calentamiento completado. El servidor está listo para la acción.")
 except Exception as e:
     print(f"Error en calentamiento: {e}")
 # ----------------------------------------
-
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def predict_with_tflite(img_array):
     img_array = img_array.astype(np.float32) / 255.0
