@@ -65,13 +65,11 @@ pydantic_core==2.33.1
 Pygments==2.20.0
 pymongo==4.12.1
 pyparsing==3.2.3
-pypiwin32==223
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-vlc==3.0.21203
 pyttsx3==2.98
 pytz==2025.2
-pywin32==310
 PyYAML==6.0.2
 qrcode==8.2
 requests==2.33.1
